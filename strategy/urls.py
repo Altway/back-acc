@@ -7,4 +7,6 @@ urlpatterns = [
     path('returns', views.returns, name='returns'),
     path('input', views.input, name='input'),
     path('coins_list', views.coins_list, name='coins_list'),
+    path('goals', views.goals, name='goals'),
+    path('queue', views.queue, name='queue'),
 ]

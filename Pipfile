@@ -9,6 +9,15 @@ verify_ssl = true
 django = "*"
 django-cors-headers = "*"
 requests = "*"
+pyportfolioopt = "*"
+numpy = "*"
+pandas = "*"
+matplotlib = "*"
+pycoingecko = "*"
+scikit-learn = "*"
+django-extensions = "*"
+werkzeug = "*"
+celery = "*"
 
 [requires]
 python_version = "3.8"
