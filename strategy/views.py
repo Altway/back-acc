@@ -6,8 +6,6 @@ import requests
 
 from .misc.portefolio import ici
 
-
-
 import json
 import numpy as np
 
@@ -26,13 +24,13 @@ class NpEncoder(json.JSONEncoder):
 
 def risk(request):
     RISK_MODEL = {
-        "SAMPLECOV": "Sample covariance",
-        "SEMICOV": "Semi covariance",
-        "EXPCOV": "Exponential covariance",
-        "MINDETCOV": "Minimum determinant covariance",
-        "COVSHRINKAGE": "Covariance Shrinkage",
-        "LEDOITWOLF": "Ledoit-Wolf method",
-        "ORACLEAPPROX": "Oracle Approximation",
+        "SAMPLECOV": "sample covariance",
+        "SEMICOV": "semi covariance",
+        "EXPCOV": "exponential covariance",
+        "MINDETCOV": "minimum determinant covariance",
+        "COVSHRINKAGE": "covariance Shrinkage",
+        "LEDOITWOLF": "ledoit-Wolf method",
+        "ORACLEAPPROX": "oracle Approximation",
     }
     output = json.dumps(RISK_MODEL)
     return HttpResponse(output)
@@ -49,7 +47,22 @@ def returns(request):
 @csrf_exempt
 def input(request):
     print(json.loads(request.body))
-    allocation, weights = ici()
+    data = json.loads(request.body)
+    _ = {
+        'risk_choice': data["risk_choice"], 
+        'returns_choice': data["returns_choice"], 
+        'risk_percentage': data["risk_percentage"], 
+        'expected_return': data["expected_return"], 
+        'coins_selected': data["coins_selected"], 
+        'short_selling': data["short_selling"],
+        'risk_free_rate': data["risk_free_rate"],
+        'capital': data["capital"],
+        'gamma':data["gamma"],
+        "short_ratio": 0.3,
+        "objectif": None,
+    }
+
+    allocation, weights = ici(_)
     output = json.dumps(allocation, cls=NpEncoder)
     output = json.dumps(weights, cls=NpEncoder)
     #return HttpResponse(output)
@@ -60,7 +73,7 @@ def coins_list(request):
     url = "https://api.coingecko.com/api/v3/coins/list"
     r = requests.get(url)
 
-    a = json.dumps(r.json()[:10])
+    a = json.dumps(r.json()[30:50])
     return HttpResponse(a)
 
 def goals(request):
