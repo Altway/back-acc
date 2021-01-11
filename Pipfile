@@ -18,6 +18,9 @@ scikit-learn = "*"
 django-extensions = "*"
 werkzeug = "*"
 celery = "*"
+yfinance = "*"
+social-auth-app-django = "*"
+social-auth-core = {extras = ["all"], version = "*"}
 
 [requires]
 python_version = "3.8"
