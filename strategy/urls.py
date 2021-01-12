@@ -10,4 +10,5 @@ urlpatterns = [
     path('coins_list', views.coins_list, name='coins_list'),
     path('goals', views.goals, name='goals'),
     path('queue', views.queue, name='queue'),
+    path('preferred_hypothethis', views.preferred_hypotethis, name='preferred_hypothethis'),
 ]

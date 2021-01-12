@@ -1,6 +1,12 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.core.serializers.json import DjangoJSONEncoder
+from django.core.serializers import serialize
+from django.core import serializers
+
+
+
 from .models import RecordHypothethis
 import json
 import requests
@@ -21,7 +27,11 @@ class NpEncoder(json.JSONEncoder):
         else:
             return super(NpEncoder, self).default(obj)
 
-
+class LazyEncoder(DjangoJSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, RecordHypothethis):
+            return str(obj)
+        return super().default(obj)
 
 def risk(request):
     RISK_MODEL = {
@@ -189,3 +199,25 @@ def queue(request):
     #messages.success(request, "We are doing stuff")
     output = json.dumps(["alala"])
     return HttpResponse(output)
+
+@csrf_exempt
+def preferred_hypotethis(request):
+    data = json.loads(request.body)
+    #data = {}
+    #data["id"] = 2
+    print(json.loads(request.body))
+    _ = {
+        "id": data["id"],
+    }
+    a = RecordHypothethis.objects.filter(id=_["id"]).order_by('-id').first()
+    #print(a)
+    response = serializers.serialize('python', [a], ensure_ascii=False)
+    a = response[0]["fields"]
+    a.pop("created_at", None)
+    a.pop("updated_at", None)
+    a.pop("short_selling", None)
+    print(a)
+    #output = json.dumps(list(a))
+    #print(output)
+    print(type(a))
+    return HttpResponse(json.dumps([a]))
