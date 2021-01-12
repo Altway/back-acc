@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from .models import RecordHypothethis
 import json
 import requests
 
@@ -51,22 +52,42 @@ def HRPOpt_method(request):
     _ = {
         'risk_choice': data["risk_choice"], 
         'returns_choice': data["returns_choice"], 
+        'method_choice': data["method_choice"], 
         'risk_percentage': data["risk_percentage"], 
         'expected_return': data["expected_return"], 
         'coins_selected': data["coins_selected"], 
         'short_selling': data["short_selling"],
         'risk_free_rate': float(data["risk_free_rate"]),
+        'broker_fees': float(data["broker_fees"]),
         'capital': int(data["capital"]),
         'gamma':data["gamma"],
         "short_ratio": 0.3,
         "objectif": None,
         "period": "1y",
+        "name": data["name"],
     }
 
     result = hrpopt(_)
     #allocation, weights = historical_value(_)
     #allocation = json.dumps(allocation, cls=NpEncoder)
     #weights = json.dumps(weights, cls=NpEncoder)
+
+    # Save in database user try
+
+    hypotethis = RecordHypothethis(
+        name=_["name"],
+        capital=_["capital"],
+        risk_free_rate=_["risk_free_rate"],
+        broker_fees=_["broker_fees"],
+        gamma=_["gamma"],
+        short_selling=_["short_selling"],
+        method=_["method_choice"],
+        strategy=_["risk_choice"],
+        tickers_selected=_["coins_selected"],
+        allocation=json.dumps(result["allocation"], cls=NpEncoder),
+    )
+    hypotethis.save()
+
     return HttpResponse(json.dumps(result["allocation"], cls=NpEncoder))
     #return HttpResponse(json.dumps({"maisoui": 40, "bonjour": 15, "trcu": 25, "this": 20}))
 
@@ -78,22 +99,38 @@ def historical_method(request):
     _ = {
         'risk_choice': data["risk_choice"], 
         'returns_choice': data["returns_choice"], 
+        'method_choice': data["method_choice"], 
         'risk_percentage': data["risk_percentage"], 
         'expected_return': data["expected_return"], 
         'coins_selected': data["coins_selected"], 
         'short_selling': data["short_selling"],
         'risk_free_rate': float(data["risk_free_rate"]),
+        'broker_fees': float(data["broker_fees"]),
         'capital': int(data["capital"]),
         'gamma':data["gamma"],
         "short_ratio": 0.3,
         "objectif": None,
         "period": "1y",
+        "name": data["name"],
     }
-
     result = historical_value(_)
     #allocation, weights = historical_value(_)
     #allocation = json.dumps(allocation, cls=NpEncoder)
     #weights = json.dumps(weights, cls=NpEncoder)
+
+    hypotethis = RecordHypothethis(
+        name=_["name"],
+        capital=_["capital"],
+        risk_free_rate=_["risk_free_rate"],
+        broker_fees=_["broker_fees"],
+        gamma=_["gamma"],
+        short_selling=_["short_selling"],
+        method=_["method_choice"],
+        strategy=_["risk_choice"],
+        tickers_selected=_["coins_selected"],
+        allocation=json.dumps(result["allocation"], cls=NpEncoder),
+    )
+    hypotethis.save()
     return HttpResponse(json.dumps(result["allocation"], cls=NpEncoder))
     #return HttpResponse(json.dumps({"maisoui": 40, "bonjour": 15, "trcu": 25, "this": 20}))
 
