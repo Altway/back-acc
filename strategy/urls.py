@@ -10,5 +10,6 @@ urlpatterns = [
     path('coins_list', views.coins_list, name='coins_list'),
     path('goals', views.goals, name='goals'),
     path('queue', views.queue, name='queue'),
-    path('preferred_hypothethis', views.preferred_hypotethis, name='preferred_hypothethis'),
+    path('preferred_hypothesis', views.preferred_hypothesis, name='preferred_hypothesis'),
+    path('hypothesis_data', views.hypothesis_data, name='hypothesis_data'),
 ]

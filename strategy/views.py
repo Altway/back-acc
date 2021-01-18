@@ -7,7 +7,7 @@ from django.core import serializers
 
 
 
-from .models import RecordHypothethis
+from .models import RecordHypothesis
 import json
 import requests
 
@@ -29,7 +29,7 @@ class NpEncoder(json.JSONEncoder):
 
 class LazyEncoder(DjangoJSONEncoder):
     def default(self, obj):
-        if isinstance(obj, RecordHypothethis):
+        if isinstance(obj, RecordHypothesis):
             return str(obj)
         return super().default(obj)
 
@@ -84,7 +84,7 @@ def HRPOpt_method(request):
 
     # Save in database user try
 
-    hypotethis = RecordHypothethis(
+    hypothesis = RecordHypothesis(
         name=_["name"],
         capital=_["capital"],
         risk_free_rate=_["risk_free_rate"],
@@ -96,7 +96,7 @@ def HRPOpt_method(request):
         tickers_selected=_["coins_selected"],
         allocation=json.dumps(result["allocation"], cls=NpEncoder),
     )
-    hypotethis.save()
+    hypothesis.save()
 
     return HttpResponse(json.dumps(result["allocation"], cls=NpEncoder))
     #return HttpResponse(json.dumps({"maisoui": 40, "bonjour": 15, "trcu": 25, "this": 20}))
@@ -128,7 +128,7 @@ def historical_method(request):
     #allocation = json.dumps(allocation, cls=NpEncoder)
     #weights = json.dumps(weights, cls=NpEncoder)
 
-    hypotethis = RecordHypothethis(
+    hypothesis = RecordHypothesis(
         name=_["name"],
         capital=_["capital"],
         risk_free_rate=_["risk_free_rate"],
@@ -140,7 +140,7 @@ def historical_method(request):
         tickers_selected=_["coins_selected"],
         allocation=json.dumps(result["allocation"], cls=NpEncoder),
     )
-    hypotethis.save()
+    hypothesis.save()
     return HttpResponse(json.dumps(result["allocation"], cls=NpEncoder))
     #return HttpResponse(json.dumps({"maisoui": 40, "bonjour": 15, "trcu": 25, "this": 20}))
 
@@ -201,15 +201,15 @@ def queue(request):
     return HttpResponse(output)
 
 @csrf_exempt
-def preferred_hypotethis(request):
+def preferred_hypothesis(request):
     data = json.loads(request.body)
-    #data = {}
-    #data["id"] = 2
+    data = {}
+    data["id"] = 1
     print(json.loads(request.body))
     _ = {
         "id": data["id"],
     }
-    a = RecordHypothethis.objects.filter(id=_["id"]).order_by('-id').first()
+    a = RecordHypothesis.objects.filter(id=_["id"]).order_by('-id').first()
     #print(a)
     response = serializers.serialize('python', [a], ensure_ascii=False)
     a = response[0]["fields"]
@@ -221,3 +221,26 @@ def preferred_hypotethis(request):
     #print(output)
     print(type(a))
     return HttpResponse(json.dumps([a]))
+
+@csrf_exempt
+def hypothesis_data(request):
+    #data = json.loads(request.body)
+    #print(json.loads(request.body))
+    #_ = {
+    #    "id": data["id"],
+    #}
+
+    bigChartData = {
+        "Test": [40,30,10,10,50,45,85,80,100,45,55,45],
+        "Truc": [80,10,20,60,54,75,5,40,0,12,58,12],
+        "Mich": [30,10,100,40,41,78,98,100,100,130,45,20],
+    }
+    bigChartLabels = [
+        "JANVIER", "FEVRIER", "MARS", "AVRIL", "MAI", 
+        "JUIN", "JUILLET", "AOÛT", "SEPTEMBRE", "OCTOBRE", "NOVEMBRE", "DECEMBRE"]
+    output = json.dumps({
+        "bigChartData": bigChartData, 
+        "bigChartLabels": bigChartLabels,
+    })
+
+    return HttpResponse(output)

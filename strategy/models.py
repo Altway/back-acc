@@ -27,7 +27,7 @@ RISK_MODEL = (
     ("ORACLEAPPROX", "Oracle Approximation"),
 )
 
-class RecordHypothethis(models.Model):
+class RecordHypothesis(models.Model):
     name = models.CharField(max_length=200)
     capital = models.IntegerField(null=True)
     risk_free_rate = models.IntegerField(null=True)
