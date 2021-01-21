@@ -159,6 +159,7 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.user_details',
 )
 SOCIAL_AUTH_ADMIN_USER_SEARCH_FIELDS = ['username', 'first_name', 'email']
+# SOCIAL_AUTH_POSTGRES_JSONFIELD = True
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '601781692092-0589uerlrtj0ms315ek0b4f91uupgtvi.apps.googleusercontent.com'
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '-nfrEXxUKjamvxUuz5DrMLPG'
