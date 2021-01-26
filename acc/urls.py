@@ -16,12 +16,15 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
-from django.contrib.auth import views as auth_views
+from social_login.views import GoogleLogin
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('personnal/', include('personnal.urls')),
     path('strategy/', include('strategy.urls')),
-    path('', include('social_django.urls', namespace='social')),
+    path('auth/', include('dj_rest_auth.urls')),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('social_login/google/', GoogleLogin.as_view(), name='google_login'),
+    path('dj-rest-auth/', include('dj_rest_auth.urls')),
 ]

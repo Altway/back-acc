@@ -211,7 +211,11 @@ def preferred_hypothesis(request):
     }
     a = RecordHypothesis.objects.filter(id=_["id"]).order_by('-id').first()
     #print(a)
-    response = serializers.serialize('python', [a], ensure_ascii=False)
+    if a:
+        response = serializers.serialize('python', [a], ensure_ascii=False)
+    else:
+        return HttpResponse(status=404)
+
     a = response[0]["fields"]
     a.pop("created_at", None)
     a.pop("updated_at", None)

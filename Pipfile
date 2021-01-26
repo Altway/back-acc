@@ -19,8 +19,11 @@ django-extensions = "*"
 werkzeug = "*"
 celery = "*"
 yfinance = "*"
-social-auth-app-django = "*"
-social-auth-core = {extras = ["all"], version = "*"}
+django-rest-framework = "*"
+dj-rest-auth = "*"
+django-allauth = "*"
+djangorestframework = "*"
+djangorestframework-simplejwt = "*"
 
 [requires]
 python_version = "3.8"
