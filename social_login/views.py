@@ -37,7 +37,7 @@ class GoogleLogin(SocialLoginView):
 """
 
 class GoogleLogin(SocialLoginView):
-    authentication_classes = [] # disable authentication
     adapter_class = GoogleOAuth2Adapter
     callback_url = "http://localhost:3000/login"
     client_class = OAuth2Client
+    authentication_classes = [] # disable authentication

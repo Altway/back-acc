@@ -20,7 +20,7 @@ werkzeug = "*"
 celery = "*"
 yfinance = "*"
 django-rest-framework = "*"
-dj-rest-auth = "*"
+dj-rest-auth = {extras = ["with_social"], version = "*"}
 django-allauth = "*"
 djangorestframework = "*"
 djangorestframework-simplejwt = "*"

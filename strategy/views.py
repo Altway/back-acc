@@ -7,7 +7,7 @@ from django.core import serializers
 
 
 
-from .models import RecordHypothesis
+from .models import RecordHypothesis, HierarchicalRiskParity
 import json
 import requests
 
@@ -200,6 +200,58 @@ def queue(request):
     output = json.dumps(["alala"])
     return HttpResponse(output)
 
+
+@csrf_exempt
+def hypothesis_data(request):
+    #data = json.loads(request.body)
+    #print(json.loads(request.body))
+    #_ = {
+    #    "id": data["id"],
+    #}
+
+    bigChartData = {
+        "Test": [40,30,10,10,50,45,85,80,100,45,55,45],
+        "Truc": [80,10,20,60,54,75,5,40,0,12,58,12],
+        "Mich": [30,10,100,40,41,78,98,100,100,130,45,20],
+    }
+    bigChartLabels = [
+        "JANVIER", "FEVRIER", "MARS", "AVRIL", "MAI", 
+        "JUIN", "JUILLET", "AOÛT", "SEPTEMBRE", "OCTOBRE", "NOVEMBRE", "DECEMBRE"]
+    output = json.dumps({
+        "bigChartData": bigChartData, 
+        "bigChartLabels": bigChartLabels,
+    })
+
+    return HttpResponse(output)
+
+
+from django.contrib.auth.models import User, Group
+from acc.serializers import UserSerializer, GroupSerializer, HierarchicalRiskParitySerializer
+from .models import RecordHypothesis, HierarchicalRiskParity
+from django.http import Http404
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+from rest_framework import routers, serializers, viewsets
+from rest_framework import permissions
+from rest_framework import generics
+
+
+from .permissions import IsOwner, IsOwnerOrReadOnly
+
+from rest_framework import viewsets
+
+from rest_framework.decorators import action
+from rest_framework import renderers
+
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    This viewset automatically provides `list` and `retrieve` actions.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    
 @csrf_exempt
 def preferred_hypothesis(request):
     data = json.loads(request.body)
@@ -226,25 +278,75 @@ def preferred_hypothesis(request):
     print(type(a))
     return HttpResponse(json.dumps([a]))
 
-@csrf_exempt
-def hypothesis_data(request):
-    #data = json.loads(request.body)
-    #print(json.loads(request.body))
-    #_ = {
-    #    "id": data["id"],
-    #}
 
-    bigChartData = {
-        "Test": [40,30,10,10,50,45,85,80,100,45,55,45],
-        "Truc": [80,10,20,60,54,75,5,40,0,12,58,12],
-        "Mich": [30,10,100,40,41,78,98,100,100,130,45,20],
-    }
-    bigChartLabels = [
-        "JANVIER", "FEVRIER", "MARS", "AVRIL", "MAI", 
-        "JUIN", "JUILLET", "AOÛT", "SEPTEMBRE", "OCTOBRE", "NOVEMBRE", "DECEMBRE"]
-    output = json.dumps({
-        "bigChartData": bigChartData, 
-        "bigChartLabels": bigChartLabels,
-    })
+class HierarchicalViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
 
-    return HttpResponse(output)
+    Additionally we also provide an extra `highlight` action.
+    """
+    queryset = HierarchicalRiskParity.objects.all()
+    serializer_class = HierarchicalRiskParitySerializer
+    permission_classes = [IsOwner]
+   # permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+   #                       IsOwnerOrReadOnly]
+
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
+    def highlight(self, request, *args, **kwargs):
+        snippet = self.get_object()
+        return Response(snippet.highlighted)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    def list(self, request):
+        print("TES COUILLE FRERE")
+        print(request.body)
+        print(request.headers)
+        return Response({"meh": 123})
+
+    def create(self, request):
+        print(json.loads(request.body))
+        data = json.loads(request.body)
+        _ = {
+            'risk_choice': data["risk_choice"], 
+            'returns_choice': data["returns_choice"], 
+            'method_choice': data["method_choice"], 
+            'risk_percentage': data["risk_percentage"], 
+            'expected_return': data["expected_return"], 
+            'coins_selected': data["coins_selected"], 
+            'short_selling': data["short_selling"],
+            'risk_free_rate': float(data["risk_free_rate"]),
+            'broker_fees': float(data["broker_fees"]),
+            'capital': int(data["capital"]),
+            'gamma':data["gamma"],
+            "short_ratio": 0.3,
+            "objectif": None,
+            "period": "1y",
+            "name": data["name"],
+        }
+
+        result = hrpopt(_)
+        #allocation, weights = historical_value(_)
+        #allocation = json.dumps(allocation, cls=NpEncoder)
+        #weights = json.dumps(weights, cls=NpEncoder)
+
+        # Save in database user try
+
+        hypothesis = RecordHypothesis(
+            name=_["name"],
+            capital=_["capital"],
+            risk_free_rate=_["risk_free_rate"],
+            broker_fees=_["broker_fees"],
+            gamma=_["gamma"],
+            short_selling=_["short_selling"],
+            method=_["method_choice"],
+            strategy=_["risk_choice"],
+            tickers_selected=_["coins_selected"],
+            allocation=json.dumps(result["allocation"], cls=NpEncoder),
+        )
+        hypothesis.save()
+
+        return HttpResponse(json.dumps(result["allocation"], cls=NpEncoder))
+        #return HttpResponse(json.dumps({"maisoui": 40, "bonjour": 15, "trcu": 25, "this": 20}))

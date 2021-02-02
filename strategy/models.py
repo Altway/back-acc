@@ -81,12 +81,16 @@ class EfficientFrontier(models.Model):
     updated_at = models.DateTimeField(default=now, editable=True)
 
 class HierarchicalRiskParity(models.Model):
+    owner = models.ForeignKey('auth.User', related_name='hropt', null=True, on_delete=models.CASCADE)
     strategy = models.ForeignKey(Strategy, on_delete=models.CASCADE)
     risk_model = models.ForeignKey(RiskModel, on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
 
     created_at = models.DateTimeField(default=now, editable=False)
     updated_at = models.DateTimeField(default=now, editable=True)
+
+    class Meta:
+        ordering = ["created_at"]
 
 class CriticalLineAlgorithm(models.Model):
     strategy = models.ForeignKey(Strategy, on_delete=models.CASCADE)

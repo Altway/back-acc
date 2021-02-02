@@ -27,6 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "localhost",
+    "127.0.0.1"
 ]
 
 
@@ -48,13 +49,13 @@ INSTALLED_APPS = [
     'corsheaders',
     'acc',
     'dj_rest_auth',
+    'dj_rest_auth.registration',
     'allauth',
     'allauth.account',
-    'dj_rest_auth.registration',
-    'rest_framework',
-    'rest_framework.authtoken',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -163,7 +164,7 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
 SOCIALACCOUNT_EMAIL_REQUIRED = False
 
 REST_USE_JWT = True
-JWT_AUTH_COOKIE = 'jwt-auth'
+JWT_AUTH_COOKIE = 'nomducookie'
 
 SITE_ID = 4
 
@@ -195,7 +196,10 @@ SOCIAL_AUTH_GITHUB_SECRET = '89266e4dc006fedc12fb28ff4b974933208da032'
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+        #"rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly",
+        ),
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework.authentication.SessionAuthentication",
