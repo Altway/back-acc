@@ -328,6 +328,8 @@ def hrpopt(data):
    )
    allocation, leftover = discrete_allocation.lp_portfolio()
    result = {}
+    
+
    return {
        "return": portfolio_performance[0],
        "risk": portfolio_performance[1],

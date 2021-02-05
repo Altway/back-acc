@@ -1,9 +1,11 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods, require_GET, require_POST
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.serializers import serialize
 from django.core import serializers
+from pypfopt import expected_returns
 
 
 
@@ -202,9 +204,10 @@ def queue(request):
 
 
 @csrf_exempt
+@require_POST
 def hypothesis_data(request):
-    #data = json.loads(request.body)
-    #print(json.loads(request.body))
+    data = json.loads(request.body)
+    print(json.loads(request.body))
     #_ = {
     #    "id": data["id"],
     #}
@@ -222,12 +225,14 @@ def hypothesis_data(request):
         "bigChartLabels": bigChartLabels,
     })
 
+    print(output)
     return HttpResponse(output)
 
 
 from django.contrib.auth.models import User, Group
-from acc.serializers import UserSerializer, GroupSerializer, HierarchicalRiskParitySerializer
+from acc.serializers import UserSerializer, GroupSerializer, HierarchicalRiskParitySerializer, RecordHypothesisSerializer
 from .models import RecordHypothesis, HierarchicalRiskParity
+from rest_framework.renderers import JSONRenderer
 from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -253,30 +258,33 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     
 @csrf_exempt
+@require_POST
 def preferred_hypothesis(request):
+    if not request:
+        data = {}
     data = json.loads(request.body)
-    data = {}
-    data["id"] = 1
     print(json.loads(request.body))
     _ = {
-        "id": data["id"],
+        "user_id": data["user_id"],
+        "hypothesis_id": data["hypothesis_id"],
     }
-    a = RecordHypothesis.objects.filter(id=_["id"]).order_by('-id').first()
-    #print(a)
+    a = RecordHypothesis.objects.filter(user_id=_["user_id"], id=_["hypothesis_id"]).order_by('-id').first()
+    print(a)
     if a:
-        response = serializers.serialize('python', [a], ensure_ascii=False)
+        #response = serializers.serialize('python', [a], ensure_ascii=False)
+        response = JSONRenderer().render(RecordHypothesisSerializer(a).data)
+        #response = a
     else:
         return HttpResponse(status=404)
 
-    a = response[0]["fields"]
-    a.pop("created_at", None)
-    a.pop("updated_at", None)
-    a.pop("short_selling", None)
-    print(a)
+    #a = response[0]["fields"]
+    #a.pop("created_at", None)
+    #a.pop("updated_at", None)
+    #a.pop("short_selling", None)
+    print(response)
     #output = json.dumps(list(a))
     #print(output)
-    print(type(a))
-    return HttpResponse(json.dumps([a]))
+    return HttpResponse(response)
 
 
 class HierarchicalViewSet(viewsets.ModelViewSet):
@@ -310,24 +318,43 @@ class HierarchicalViewSet(viewsets.ModelViewSet):
         print(json.loads(request.body))
         data = json.loads(request.body)
         _ = {
+            'name': data["name"],
             'risk_choice': data["risk_choice"], 
+            'user_id': data["user_id"],
+            'broker_fees': float(data["broker_fees"]),
+            'capital': int(data["capital"]),
+            'expected_return': data["expected_return"], 
+            'expected_returns_id': data["expected_returns_id"], 
+            'gamma':data["gamma"],
+            'risk_free_rate': float(data["risk_free_rate"]),
+            'short_selling': data["short_selling"],
+            'coins_selected': data["coins_selected"], 
+
+            'risk_model_id': data["risk_model_id"], 
             'returns_choice': data["returns_choice"], 
             'method_choice': data["method_choice"], 
             'risk_percentage': data["risk_percentage"], 
-            'expected_return': data["expected_return"], 
-            'coins_selected': data["coins_selected"], 
-            'short_selling': data["short_selling"],
-            'risk_free_rate': float(data["risk_free_rate"]),
-            'broker_fees': float(data["broker_fees"]),
-            'capital': int(data["capital"]),
-            'gamma':data["gamma"],
-            "short_ratio": 0.3,
-            "objectif": None,
-            "period": "1y",
-            "name": data["name"],
+            'short_ratio': 0.3,
+            'objectif': None,
+            'period': '1y',
         }
+        print(f"LE MEGA PAYLOAD: {_}")
 
         result = hrpopt(_)
+
+        hropt = HierarchicalRiskParity(
+            name=_["name"],
+            risk_model_id=_["risk_model_id"],
+            user_id=_["user_id"],
+            broker_fees=_["broker_fees"],
+            capital=_["capital"],
+            expected_return_id=int(_["expected_returns_id"]), 
+            gamma=_["gamma"],
+            risk_free_rate=_["risk_free_rate"],
+            short_selling=_["short_selling"],
+            tickers_selected=_["coins_selected"],
+        )
+        hropt.save()
         #allocation, weights = historical_value(_)
         #allocation = json.dumps(allocation, cls=NpEncoder)
         #weights = json.dumps(weights, cls=NpEncoder)
@@ -336,11 +363,9 @@ class HierarchicalViewSet(viewsets.ModelViewSet):
 
         hypothesis = RecordHypothesis(
             name=_["name"],
+            user_id=_["user_id"],
             capital=_["capital"],
             risk_free_rate=_["risk_free_rate"],
-            broker_fees=_["broker_fees"],
-            gamma=_["gamma"],
-            short_selling=_["short_selling"],
             method=_["method_choice"],
             strategy=_["risk_choice"],
             tickers_selected=_["coins_selected"],
