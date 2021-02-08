@@ -16,6 +16,8 @@ import yfinance as yf
 
 from multiprocessing import Pool, Process, Manager
 
+from yfinance import ticker
+
 coingecko_client = CoinGeckoAPI()
 manager = Manager()
 
@@ -48,6 +50,30 @@ def get_stocks_market_cap(stocks_list):
     [p.start() for p in job]
     [p.join() for p in job]
     return mcaps
+
+def get_portfolio_performance(record_hypothesis):
+
+    import ast
+    tickers_selected = record_hypothesis.allocation
+    tickers_dict = ast.literal_eval(tickers_selected)
+    capital = int(record_hypothesis.capital)
+    print((tickers_dict, capital))
+
+    tickers_selected = list(tickers_dict.keys())
+    #print(tickers_selected)
+    ticke_da = get_stocks_data(tickers_selected, period="2y")["Adj Close"]
+    #print(ticke_da)
+    tickers_data = ticke_da.resample('M').last()
+    tickers_data = tickers_data[tickers_data.index.year==2020]
+
+    print(tickers_data)
+    print(type(tickers_data))
+    # Allocation de départ
+    res = 0
+    for el in tickers_selected:
+        res += tickers_data[el] * tickers_dict[el]
+    print(res)
+    return res
 
 def historical_value(data):
 

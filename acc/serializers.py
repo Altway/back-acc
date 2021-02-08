@@ -26,3 +26,9 @@ class RecordHypothesisSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = RecordHypothesis
         fields = ['name', 'created_at', 'user', 'allocation']
+
+class PortfolioPerformanceSerializer(serializers.HyperlinkedModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+    class Meta:
+        model = RecordHypothesis
+        fields = ['name', 'created_at', 'user', 'allocation']

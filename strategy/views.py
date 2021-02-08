@@ -13,7 +13,7 @@ from .models import RecordHypothesis, HierarchicalRiskParity
 import json
 import requests
 
-from .misc.portefolio import ici, historical_value, hrpopt
+from .misc.portefolio import ici, historical_value, hrpopt, get_portfolio_performance
 
 import json
 import numpy as np
@@ -211,11 +211,23 @@ def hypothesis_data(request):
     #_ = {
     #    "id": data["id"],
     #}
+    _ = {
+        "user_id": data["user_id"],
+        "hypothesis_id": data["hypothesis_id"],
+    }
 
+    a = RecordHypothesis.objects.filter(user_id=_["user_id"], id=_["hypothesis_id"]).order_by('-id').first()
+    b = get_portfolio_performance(a)
+
+    print(f" DATA TOUT COURT {b}")
+    d = b.fillna(0).cumsum()
+    print(f"CUMSUM {d}")
+    e = b.pct_change().fillna(0) * 100
+    print(f"PCT CHANGE {e}")
     bigChartData = {
-        "Test": [40,30,10,10,50,45,85,80,100,45,55,45],
-        "Truc": [80,10,20,60,54,75,5,40,0,12,58,12],
-        "Mich": [30,10,100,40,41,78,98,100,100,130,45,20],
+        "Test": b.fillna(0).tolist(),
+        "Truc": d.tolist(),
+        "Mich": e.tolist(),
     }
     bigChartLabels = [
         "JANVIER", "FEVRIER", "MARS", "AVRIL", "MAI", 
@@ -269,7 +281,7 @@ def preferred_hypothesis(request):
         "hypothesis_id": data["hypothesis_id"],
     }
     a = RecordHypothesis.objects.filter(user_id=_["user_id"], id=_["hypothesis_id"]).order_by('-id').first()
-    print(a)
+    b = get_portfolio_performance(a)
     if a:
         #response = serializers.serialize('python', [a], ensure_ascii=False)
         response = JSONRenderer().render(RecordHypothesisSerializer(a).data)
@@ -281,7 +293,7 @@ def preferred_hypothesis(request):
     #a.pop("created_at", None)
     #a.pop("updated_at", None)
     #a.pop("short_selling", None)
-    print(response)
+    #print(response)
     #output = json.dumps(list(a))
     #print(output)
     return HttpResponse(response)
