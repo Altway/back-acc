@@ -213,10 +213,10 @@ def hypothesis_data(request):
     #}
     _ = {
         "user_id": data["user_id"],
-        "hypothesis_id": data["hypothesis_id"],
+        "hypothesis_name": data["hypothesis_name"],
     }
 
-    a = RecordHypothesis.objects.filter(user_id=_["user_id"], id=_["hypothesis_id"]).order_by('-id').first()
+    a = RecordHypothesis.objects.filter(user_id=_["user_id"], name=_["hypothesis_name"]).order_by('-id').first()
     b = get_portfolio_performance(a)
 
     print(f" DATA TOUT COURT {b}")
@@ -225,9 +225,9 @@ def hypothesis_data(request):
     e = b.pct_change().fillna(0) * 100
     print(f"PCT CHANGE {e}")
     bigChartData = {
-        "Test": b.fillna(0).tolist(),
-        "Truc": d.tolist(),
-        "Mich": e.tolist(),
+        "simple": b.fillna(0).tolist(),
+        "cumsum": d.tolist(),
+        "pct": e.tolist(),
     }
     bigChartLabels = [
         "JANVIER", "FEVRIER", "MARS", "AVRIL", "MAI", 
@@ -292,9 +292,9 @@ def preferred_hypothesis(request):
     print(json.loads(request.body))
     _ = {
         "user_id": data["user_id"],
-        "hypothesis_id": data["hypothesis_id"],
+        "hypothesis_name": data["hypothesis_name"],
     }
-    a = RecordHypothesis.objects.filter(user_id=_["user_id"], id=_["hypothesis_id"]).order_by('-id').first()
+    a = RecordHypothesis.objects.filter(user_id=_["user_id"], name=_["hypothesis_name"]).order_by('-id').first()
     b = get_portfolio_performance(a)
     if a:
         #response = serializers.serialize('python', [a], ensure_ascii=False)

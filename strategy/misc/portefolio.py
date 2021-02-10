@@ -321,9 +321,6 @@ def ici(data):
     #print("Funds remaining: ${:.2f}".format(leftover))
 
 
-
-
-
 def hrpopt(data):
 
    stocks_data = get_stocks_data(

@@ -71,7 +71,7 @@ class HierarchicalRiskParity(models.Model):
         ordering = ["created_at"]
 
 class RecordHypothesis(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, unique=True)
     capital = models.IntegerField(null=True)
     risk_free_rate = models.IntegerField(null=True)
     risk = models.FloatField(null=True, blank=True, default=None)
