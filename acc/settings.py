@@ -172,7 +172,7 @@ SITE_ID = 4
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True, # IMPORTANT
     'BLACKLIST_AFTER_ROTATION': True, # IMPORTANT
@@ -201,8 +201,8 @@ REST_FRAMEWORK = {
         #"rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly",
         ),
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework.authentication.BasicAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
+        #"rest_framework.authentication.BasicAuthentication",
+        #"rest_framework.authentication.SessionAuthentication",
         "dj_rest_auth.utils.JWTCookieAuthentication",
     ),
 }

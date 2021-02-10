@@ -268,6 +268,20 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [IsOwner]
+
+    def bip(self, request, *args, **kwargs):
+        user = self.get_object()
+        print(dir(user))
+        a = RecordHypothesis.objects.filter(user_id=user.id).order_by('-id').all()
+        #response = JSONRenderer().render(RecordHypothesisSerializer(a).data)
+        response = RecordHypothesisSerializer(a, many=True).data
+        #a = [i.created_at for i in a]
+        return Response(response)
+        #print(a)
+        #print(RecordHypothesisSerializer(a).data)
+        #print(response)
+        #return Response({"ouioui": 123})
     
 @csrf_exempt
 @require_POST
@@ -387,3 +401,30 @@ class HierarchicalViewSet(viewsets.ModelViewSet):
 
         return HttpResponse(json.dumps(result["allocation"], cls=NpEncoder))
         #return HttpResponse(json.dumps({"maisoui": 40, "bonjour": 15, "trcu": 25, "this": 20}))
+
+
+class RecordHypothesisViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
+
+    Additionally we also provide an extra `highlight` action.
+    """
+    queryset = RecordHypothesis.objects.all()
+    serializer_class = RecordHypothesisSerializer
+    permission_classes = [IsOwner]
+   # permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+   #                       IsOwnerOrReadOnly]
+    def list(self, request):
+        data = json.loads(request.body)
+        print(json.loads(request.body))
+        _ = {
+            "user_id": data["user_id"],
+        }
+        a = RecordHypothesis.objects.filter(user_id=_["user_id"]).order_by('-id').all()
+        print("LES COUCOUILLES")
+        print(request.body)
+        print(request.headers)
+        response = JSONRenderer().render(RecordHypothesisSerializer(a).data)
+        print(response)
+        return Response(response)

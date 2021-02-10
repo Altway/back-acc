@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
-    hropt = serializers.PrimaryKeyRelatedField(many=True, queryset=HierarchicalRiskParity.objects.all())
+    #hropt = serializers.PrimaryKeyRelatedField(many=True, queryset=HierarchicalRiskParity.objects.all())
     class Meta:
         model = User
         fields = ['url', 'username', 'email', 'groups']
@@ -21,14 +21,14 @@ class HierarchicalRiskParitySerializer(serializers.HyperlinkedModelSerializer):
         model = HierarchicalRiskParity
         fields = ['name', 'created_at', 'user']
 
-class RecordHypothesisSerializer(serializers.HyperlinkedModelSerializer):
+class RecordHypothesisSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')
     class Meta:
         model = RecordHypothesis
-        fields = ['name', 'created_at', 'user', 'allocation']
+        fields = ['created_at', 'name', 'allocation', 'user']
 
 class PortfolioPerformanceSerializer(serializers.HyperlinkedModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')
     class Meta:
         model = RecordHypothesis
-        fields = ['name', 'created_at', 'user', 'allocation']
+        fields = ['created_at', 'user']

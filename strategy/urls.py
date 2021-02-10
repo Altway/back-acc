@@ -32,10 +32,14 @@ user_list = UserViewSet.as_view({
 user_detail = UserViewSet.as_view({
     'get': 'retrieve'
 })
+user_hypothesis = UserViewSet.as_view({
+    'get': 'bip'
+})
 
 router = DefaultRouter()
 router.register(r'snippets', views.HierarchicalViewSet)
 router.register(r'users', views.UserViewSet)
+router.register(r'hypothesis', views.RecordHypothesisViewSet)
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
@@ -46,6 +50,7 @@ urlpatterns = [
     path('goals', views.goals, name='goals'),
     path('preferred_hypothesis', views.preferred_hypothesis, name='preferred_hypothesis'),
     path('hypothesis_data', views.hypothesis_data, name='hypothesis_data'),
+    path('users/<int:pk>/hypothesis', user_hypothesis, name='user-hypothesis'),
 ]
 """
 urlpatterns = format_suffix_patterns([

@@ -1,5 +1,5 @@
 from rest_framework import permissions
-
+from . import models
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """
@@ -35,6 +35,18 @@ class IsOwner(permissions.BasePermission):
         print('enter has_object_permission')
         # only allow the owner to make changes
         user = self.get_user_for_obj(obj)
+
+
+        print("=================================")
+        print(request)
+        print(request.user)
+        print(request.user.is_staff)
+        print(view)
+        print(view.action)
+        print(obj)
+        print(user)
+        print("=================================")
+
         print(f'user: {user.username}')
         if request.user.is_staff:
             print('has_object_permission true: staff')
@@ -50,8 +62,10 @@ class IsOwner(permissions.BasePermission):
             return False
 
     def get_user_for_obj(self, obj):
+        print(obj)
+        print(type(obj))
         model = type(obj)
-        if model is models.UserProfile:
-            return obj.user
+        if model is models.User:
+            return obj
         else:
             return obj.owner.user
