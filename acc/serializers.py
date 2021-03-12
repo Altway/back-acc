@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User, Group
-from strategy.models import HierarchicalRiskParity, RecordHypothesis
+from strategy.models import HierarchicalRiskParity, HistoricalValue, RecordHypothesis
 from rest_framework import serializers
 
 
@@ -19,6 +19,12 @@ class HierarchicalRiskParitySerializer(serializers.HyperlinkedModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')
     class Meta:
         model = HierarchicalRiskParity
+        fields = ['name', 'created_at', 'user']
+
+class HistoricalValueSerializer(serializers.HyperlinkedModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+    class Meta:
+        model = HistoricalValue
         fields = ['name', 'created_at', 'user']
 
 class RecordHypothesisSerializer(serializers.ModelSerializer):

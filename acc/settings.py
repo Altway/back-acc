@@ -27,7 +27,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "localhost",
-    "127.0.0.1"
+    "127.0.0.1",
+    "localhost:3000",
+    "localhost:8000",
 ]
 
 
@@ -56,6 +58,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'rest_framework',
     'rest_framework.authtoken',
+    'health_check',
+    'health_check.db', 
 ]
 
 MIDDLEWARE = [

@@ -49,6 +49,27 @@ class RiskModel(models.Model):
     created_at = models.DateTimeField(default=now, editable=False)
     updated_at = models.DateTimeField(default=now, editable=True)
 
+class HistoricalValue(models.Model):
+    user = models.ForeignKey('auth.User', related_name='historicalvalue', null=True, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
+    expected_return = models.ForeignKey(ExpectedReturn, on_delete=models.CASCADE)
+    risk_model = models.ForeignKey(RiskModel, on_delete=models.CASCADE)
+
+    capital = models.FloatField(null=True, blank=True, default=None)
+    risk_free_rate = models.FloatField(null=True, blank=True, default=None)
+    broker_fees = models.FloatField(null=True, blank=True, default=None)
+    gamma = models.FloatField(null=True, blank=True, default=None)
+
+    tickers_selected = models.CharField(max_length=200)
+    short_selling = models.BooleanField(null=True)
+
+    created_at = models.DateTimeField(default=now, editable=False)
+    updated_at = models.DateTimeField(default=now, editable=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+
 
 class HierarchicalRiskParity(models.Model):
     user = models.ForeignKey('auth.User', related_name='hropt', null=True, on_delete=models.CASCADE)

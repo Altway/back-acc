@@ -4,8 +4,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_GET, require_POST
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.serializers import serialize
-from django.core import serializers
-from pypfopt import expected_returns
 
 
 
@@ -13,7 +11,7 @@ from .models import RecordHypothesis, HierarchicalRiskParity
 import json
 import requests
 
-from .misc.portefolio import ici, historical_value, hrpopt, get_portfolio_performance
+from .misc.portefolio import historical_value_analyze, hrpopt_analyze, get_portfolio_performance
 
 import json
 import numpy as np
@@ -57,102 +55,11 @@ def returns(request):
     output = json.dumps(EXPECTED_RETURNS)
     return HttpResponse(output)
 
-@csrf_exempt
-def HRPOpt_method(request):
-    print(json.loads(request.body))
-    data = json.loads(request.body)
-    _ = {
-        'risk_choice': data["risk_choice"], 
-        'returns_choice': data["returns_choice"], 
-        'method_choice': data["method_choice"], 
-        'risk_percentage': data["risk_percentage"], 
-        'expected_return': data["expected_return"], 
-        'coins_selected': data["coins_selected"], 
-        'short_selling': data["short_selling"],
-        'risk_free_rate': float(data["risk_free_rate"]),
-        'broker_fees': float(data["broker_fees"]),
-        'capital': int(data["capital"]),
-        'gamma':data["gamma"],
-        "short_ratio": 0.3,
-        "objectif": None,
-        "period": "1y",
-        "name": data["name"],
-    }
-
-    result = hrpopt(_)
-    #allocation, weights = historical_value(_)
-    #allocation = json.dumps(allocation, cls=NpEncoder)
-    #weights = json.dumps(weights, cls=NpEncoder)
-
-    # Save in database user try
-
-    hypothesis = RecordHypothesis(
-        name=_["name"],
-        capital=_["capital"],
-        risk_free_rate=_["risk_free_rate"],
-        broker_fees=_["broker_fees"],
-        gamma=_["gamma"],
-        short_selling=_["short_selling"],
-        method=_["method_choice"],
-        strategy=_["risk_choice"],
-        tickers_selected=_["coins_selected"],
-        allocation=json.dumps(result["allocation"], cls=NpEncoder),
-    )
-    hypothesis.save()
-
-    return HttpResponse(json.dumps(result["allocation"], cls=NpEncoder))
-    #return HttpResponse(json.dumps({"maisoui": 40, "bonjour": 15, "trcu": 25, "this": 20}))
-
-
-@csrf_exempt
-def historical_method(request):
-    print(json.loads(request.body))
-    data = json.loads(request.body)
-    _ = {
-        'risk_choice': data["risk_choice"], 
-        'returns_choice': data["returns_choice"], 
-        'method_choice': data["method_choice"], 
-        'risk_percentage': data["risk_percentage"], 
-        'expected_return': data["expected_return"], 
-        'coins_selected': data["coins_selected"], 
-        'short_selling': data["short_selling"],
-        'risk_free_rate': float(data["risk_free_rate"]),
-        'broker_fees': float(data["broker_fees"]),
-        'capital': int(data["capital"]),
-        'gamma':data["gamma"],
-        "short_ratio": 0.3,
-        "objectif": None,
-        "period": "1y",
-        "name": data["name"],
-    }
-    result = historical_value(_)
-    #allocation, weights = historical_value(_)
-    #allocation = json.dumps(allocation, cls=NpEncoder)
-    #weights = json.dumps(weights, cls=NpEncoder)
-
-    hypothesis = RecordHypothesis(
-        name=_["name"],
-        capital=_["capital"],
-        risk_free_rate=_["risk_free_rate"],
-        broker_fees=_["broker_fees"],
-        gamma=_["gamma"],
-        short_selling=_["short_selling"],
-        method=_["method_choice"],
-        strategy=_["risk_choice"],
-        tickers_selected=_["coins_selected"],
-        allocation=json.dumps(result["allocation"], cls=NpEncoder),
-    )
-    hypothesis.save()
-    return HttpResponse(json.dumps(result["allocation"], cls=NpEncoder))
-    #return HttpResponse(json.dumps({"maisoui": 40, "bonjour": 15, "trcu": 25, "this": 20}))
-
 
 def coins_list(request):
     url = "https://api.coingecko.com/api/v3/coins/list"
     r = requests.get(url)
 
-    #a = json.dumps(r.json()[30:50])
-    #print(a)
     a = [
         {"id": 1,"symbol": "ABNB"}, 
         {"id": 2,"symbol": "AMD"}, 
@@ -179,13 +86,6 @@ def coins_list(request):
     #    {"id": "0-5x-long-shitcoin-index-token", "symbol": "halfshit", "name": "0.5X Long Shitcoin Index Token"}, 
     #    {"id": "0-5x-long-swipe-token", "symbol": "sxphalf", "name": "0.5X Long Swipe Token"}, 
     #    {"id": "0-5x-long-tether-gold-token", "symbol": "xauthalf", "name": "0.5X Long Tether Gold Token"}, {"id": "0-5x-long-tether-token", "symbol": "usdthalf", "name": "0.5X Long Tether Token"}, {"id": "0-5x-long-tezos-token", "symbol": "xtzhalf", "name": "0.5X Long Tezos Token"}, {"id": "0-5x-long-theta-network-token", "symbol": "thetahalf", "name": "0.5X Long Theta Network Token"}, {"id": "0-5x-long-tomochain-token", "symbol": "tomohalf", "name": "0.5X Long TomoChain Token"}, {"id": "0-5x-long-trx-token", "symbol": "trxhalf", "name": "0.5X Long TRX Token"}, {"id": "0-5x-long-xrp-token", "symbol": "xrphalf", "name": "0.5X Long XRP Token"}, {"id": "0cash", "symbol": "zch", "name": "0cash"}, {"id": "0chain", "symbol": "zcn", "name": "0chain"}, {"id": "0x", "symbol": "zrx", "name": "0x"}, {"id": "0xcert", "symbol": "zxc", "name": "0xcert"}, {"id": "0xmonero", "symbol": "0xmr", "name": "0xMonero"}, {"id": "100-waves-eth-btc-set", "symbol": "100wratio", "name": "100 Waves ETH/BTC Set"}, {"id": "100-waves-eth-usd-yield-set", "symbol": "100w", "name": "100 Waves ETH/USD Yield Set"}, {"id": "12ships", "symbol": "TSHP", "name": "12Ships"}, {"id": "1337", "symbol": "1337", "name": "Elite"}]
-        
-    """    
-        "V", "AMD", "CSCO", "HNI", "ORI", 
-        "SPR", "XOM", "CB", "LOW", "MDLZ", "GRWG", 
-        "BIIB", "ADBE", "CRSR", "INTC", "JNJ", 
-        "JPM", "LAZ", "NVDA"
-    """
     return HttpResponse(json.dumps(a))
 
 def goals(request):
@@ -241,9 +141,9 @@ def hypothesis_data(request):
     return HttpResponse(output)
 
 
-from django.contrib.auth.models import User, Group
-from acc.serializers import UserSerializer, GroupSerializer, HierarchicalRiskParitySerializer, RecordHypothesisSerializer
-from .models import RecordHypothesis, HierarchicalRiskParity
+from django.contrib.auth.models import User 
+from acc.serializers import UserSerializer, HierarchicalRiskParitySerializer, RecordHypothesisSerializer, HistoricalValueSerializer
+from .models import RecordHypothesis, HierarchicalRiskParity, HistoricalValue
 from rest_framework.renderers import JSONRenderer
 from django.http import Http404
 from rest_framework.views import APIView
@@ -366,7 +266,7 @@ class HierarchicalViewSet(viewsets.ModelViewSet):
         }
         print(f"LE MEGA PAYLOAD: {_}")
 
-        result = hrpopt(_)
+        result = hrpopt_analyse(_)
 
         hropt = HierarchicalRiskParity(
             name=_["name"],
@@ -400,7 +300,95 @@ class HierarchicalViewSet(viewsets.ModelViewSet):
         hypothesis.save()
 
         return HttpResponse(json.dumps(result["allocation"], cls=NpEncoder))
-        #return HttpResponse(json.dumps({"maisoui": 40, "bonjour": 15, "trcu": 25, "this": 20}))
+
+class HistoricalValueViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
+
+    Additionally we also provide an extra `highlight` action.
+    """
+    queryset = HistoricalValue.objects.all()
+    serializer_class = HistoricalValueSerializer
+    permission_classes = [IsOwner]
+   # permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+   #                       IsOwnerOrReadOnly]
+
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
+    def highlight(self, request, *args, **kwargs):
+        snippet = self.get_object()
+        return Response(snippet.highlighted)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    def list(self, request):
+        print("TES COUILLE FRERE")
+        print(request.body)
+        print(request.headers)
+        return Response({"meh": 123})
+
+    def create(self, request):
+        print(json.loads(request.body))
+        data = json.loads(request.body)
+        _ = {
+            'name': data["name"],
+            'risk_choice': data["risk_choice"], 
+            'user_id': data["user_id"],
+            'broker_fees': float(data["broker_fees"]),
+            'capital': int(data["capital"]),
+            'expected_return': data["expected_return"], 
+            'expected_returns_id': data["expected_returns_id"], 
+            'gamma':data["gamma"],
+            'risk_free_rate': float(data["risk_free_rate"]),
+            'short_selling': data["short_selling"],
+            'coins_selected': data["coins_selected"], 
+
+            'risk_model_id': data["risk_model_id"], 
+            'returns_choice': data["returns_choice"], 
+            'method_choice': data["method_choice"], 
+            'risk_percentage': data["risk_percentage"], 
+            'short_ratio': 0.3,
+            'objectif': None,
+            'period': '1y',
+        }
+        print(f"LE MEGA PAYLOAD: {_}")
+
+        result = historical_value_analyze(_)
+
+        hv = HistoricalValue(
+            name=_["name"],
+            risk_model_id=_["risk_model_id"],
+            user_id=_["user_id"],
+            broker_fees=_["broker_fees"],
+            capital=_["capital"],
+            expected_return_id=int(_["expected_returns_id"]), 
+            gamma=_["gamma"],
+            risk_free_rate=_["risk_free_rate"],
+            short_selling=_["short_selling"],
+            tickers_selected=_["coins_selected"],
+        )
+        hv.save()
+        #allocation, weights = historical_value(_)
+        #allocation = json.dumps(allocation, cls=NpEncoder)
+        #weights = json.dumps(weights, cls=NpEncoder)
+
+        # Save in database user try
+
+        hypothesis = RecordHypothesis(
+            name=_["name"],
+            user_id=_["user_id"],
+            capital=_["capital"],
+            risk_free_rate=_["risk_free_rate"],
+            method=_["method_choice"],
+            strategy=_["risk_choice"],
+            tickers_selected=_["coins_selected"],
+            allocation=json.dumps(result["allocation"], cls=NpEncoder),
+        )
+        hypothesis.save()
+
+        return HttpResponse(json.dumps(result["allocation"], cls=NpEncoder))
+
 
 
 class RecordHypothesisViewSet(viewsets.ModelViewSet):

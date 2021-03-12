@@ -1,8 +1,7 @@
 from django.urls import path
 
 from . import views
-from .views import HierarchicalViewSet, UserViewSet
-from rest_framework import routers
+from .views import HierarchicalViewSet, RecordHypothesisViewSet, UserViewSet, preferred_hypothesis
 from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework import renderers
 
@@ -10,8 +9,6 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 
-router = routers.DefaultRouter()
- #router.register(r'hropt', views.HierarchicalRiskParitySet)
 
 snippet_list = HierarchicalViewSet.as_view({
     'get': 'list',
@@ -26,6 +23,7 @@ snippet_detail = HierarchicalViewSet.as_view({
 snippet_highlight = HierarchicalViewSet.as_view({
     'get': 'highlight'
 }, renderer_classes=[renderers.StaticHTMLRenderer])
+
 user_list = UserViewSet.as_view({
     'get': 'list'
 })
@@ -35,11 +33,16 @@ user_detail = UserViewSet.as_view({
 user_hypothesis = UserViewSet.as_view({
     'get': 'bip'
 })
+#preferred_hypothesis_list = RecordHypothesisViewSet.as_view({
+#    'get': 'list'
+#})
 
 router = DefaultRouter()
+ #router.register(r'hropt', views.HierarchicalRiskParitySet)
 router.register(r'snippets', views.HierarchicalViewSet)
+router.register(r'historical', views.HistoricalValueViewSet)
+#router.register(r'hypothesis', views.RecordHypothesisViewSet)
 router.register(r'users', views.UserViewSet)
-router.register(r'hypothesis', views.RecordHypothesisViewSet)
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
