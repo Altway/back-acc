@@ -1,37 +1,40 @@
+import json
+from pypfopt.base_optimizer import portfolio_performance
+import requests
+
+from django.shortcuts import get_object_or_404
+
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_GET, require_POST
-from django.core.serializers.json import DjangoJSONEncoder
-from django.core.serializers import serialize
-
-
 
 from .models import RecordHypothesis, HierarchicalRiskParity
-import json
-import requests
+from acc.encoders import NpEncoder 
 
 from .misc.portefolio import historical_value_analyze, hrpopt_analyze, get_portfolio_performance
 
-import json
-import numpy as np
+from django.contrib.auth.models import User 
+from acc.serializers import UserSerializer, HierarchicalRiskParitySerializer, RecordHypothesisSerializer, HistoricalValueSerializer
+from .models import RecordHypothesis, HierarchicalRiskParity, HistoricalValue
+from rest_framework.renderers import JSONRenderer
+from django.http import Http404
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 
-class NpEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        else:
-            return super(NpEncoder, self).default(obj)
+from rest_framework import routers, serializers, viewsets
+from rest_framework import permissions
+from rest_framework import generics
 
-class LazyEncoder(DjangoJSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, RecordHypothesis):
-            return str(obj)
-        return super().default(obj)
+
+from .permissions import IsOwner, IsOwnerOrReadOnly, Open
+
+from rest_framework import viewsets
+
+from rest_framework.decorators import action
+from rest_framework import renderers
+
 
 def risk(request):
     RISK_MODEL = {
@@ -82,10 +85,6 @@ def coins_list(request):
         {"id": 19,"symbol": "LAZ"}, 
         {"id": 20,"symbol": "NVDA"}, 
     ]
-    #a = [
-    #    {"id": "0-5x-long-shitcoin-index-token", "symbol": "halfshit", "name": "0.5X Long Shitcoin Index Token"}, 
-    #    {"id": "0-5x-long-swipe-token", "symbol": "sxphalf", "name": "0.5X Long Swipe Token"}, 
-    #    {"id": "0-5x-long-tether-gold-token", "symbol": "xauthalf", "name": "0.5X Long Tether Gold Token"}, {"id": "0-5x-long-tether-token", "symbol": "usdthalf", "name": "0.5X Long Tether Token"}, {"id": "0-5x-long-tezos-token", "symbol": "xtzhalf", "name": "0.5X Long Tezos Token"}, {"id": "0-5x-long-theta-network-token", "symbol": "thetahalf", "name": "0.5X Long Theta Network Token"}, {"id": "0-5x-long-tomochain-token", "symbol": "tomohalf", "name": "0.5X Long TomoChain Token"}, {"id": "0-5x-long-trx-token", "symbol": "trxhalf", "name": "0.5X Long TRX Token"}, {"id": "0-5x-long-xrp-token", "symbol": "xrphalf", "name": "0.5X Long XRP Token"}, {"id": "0cash", "symbol": "zch", "name": "0cash"}, {"id": "0chain", "symbol": "zcn", "name": "0chain"}, {"id": "0x", "symbol": "zrx", "name": "0x"}, {"id": "0xcert", "symbol": "zxc", "name": "0xcert"}, {"id": "0xmonero", "symbol": "0xmr", "name": "0xMonero"}, {"id": "100-waves-eth-btc-set", "symbol": "100wratio", "name": "100 Waves ETH/BTC Set"}, {"id": "100-waves-eth-usd-yield-set", "symbol": "100w", "name": "100 Waves ETH/USD Yield Set"}, {"id": "12ships", "symbol": "TSHP", "name": "12Ships"}, {"id": "1337", "symbol": "1337", "name": "Elite"}]
     return HttpResponse(json.dumps(a))
 
 def goals(request):
@@ -94,7 +93,6 @@ def goals(request):
     return HttpResponse(output)
 
 def queue(request):
-
     #from .tasks import random_task
     #from django.contrib import messages
     #a = random_task.delay(15)
@@ -107,16 +105,15 @@ def queue(request):
 @require_POST
 def hypothesis_data(request):
     data = json.loads(request.body)
-    print(json.loads(request.body))
-    #_ = {
-    #    "id": data["id"],
-    #}
     _ = {
         "user_id": data["user_id"],
         "hypothesis_name": data["hypothesis_name"],
     }
 
-    a = RecordHypothesis.objects.filter(user_id=_["user_id"], name=_["hypothesis_name"]).order_by('-id').first()
+    if _["hypothesis_name"]:
+        a = RecordHypothesis.objects.filter(user_id=_["user_id"], name=_["hypothesis_name"]).order_by('-id').first()
+    else:
+        a = RecordHypothesis.objects.filter(user_id=_["user_id"]).order_by('-id').first()
     b = get_portfolio_performance(a)
 
     print(f" DATA TOUT COURT {b}")
@@ -137,51 +134,8 @@ def hypothesis_data(request):
         "bigChartLabels": bigChartLabels,
     })
 
-    print(output)
     return HttpResponse(output)
 
-
-from django.contrib.auth.models import User 
-from acc.serializers import UserSerializer, HierarchicalRiskParitySerializer, RecordHypothesisSerializer, HistoricalValueSerializer
-from .models import RecordHypothesis, HierarchicalRiskParity, HistoricalValue
-from rest_framework.renderers import JSONRenderer
-from django.http import Http404
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-
-from rest_framework import routers, serializers, viewsets
-from rest_framework import permissions
-from rest_framework import generics
-
-
-from .permissions import IsOwner, IsOwnerOrReadOnly
-
-from rest_framework import viewsets
-
-from rest_framework.decorators import action
-from rest_framework import renderers
-
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    This viewset automatically provides `list` and `retrieve` actions.
-    """
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [IsOwner]
-
-    def bip(self, request, *args, **kwargs):
-        user = self.get_object()
-        print(dir(user))
-        a = RecordHypothesis.objects.filter(user_id=user.id).order_by('-id').all()
-        #response = JSONRenderer().render(RecordHypothesisSerializer(a).data)
-        response = RecordHypothesisSerializer(a, many=True).data
-        #a = [i.created_at for i in a]
-        return Response(response)
-        #print(a)
-        #print(RecordHypothesisSerializer(a).data)
-        #print(response)
-        #return Response({"ouioui": 123})
     
 @csrf_exempt
 @require_POST
@@ -194,7 +148,10 @@ def preferred_hypothesis(request):
         "user_id": data["user_id"],
         "hypothesis_name": data["hypothesis_name"],
     }
-    a = RecordHypothesis.objects.filter(user_id=_["user_id"], name=_["hypothesis_name"]).order_by('-id').first()
+    if _["hypothesis_name"]:
+        a = RecordHypothesis.objects.filter(user_id=_["user_id"], name=_["hypothesis_name"]).order_by('-id').first()
+    else:
+        a = RecordHypothesis.objects.filter(user_id=_["user_id"]).order_by('-id').first()
     b = get_portfolio_performance(a)
     if a:
         #response = serializers.serialize('python', [a], ensure_ascii=False)
@@ -203,15 +160,58 @@ def preferred_hypothesis(request):
     else:
         return HttpResponse(status=404)
 
-    #a = response[0]["fields"]
-    #a.pop("created_at", None)
-    #a.pop("updated_at", None)
-    #a.pop("short_selling", None)
-    #print(response)
-    #output = json.dumps(list(a))
-    #print(output)
     return HttpResponse(response)
 
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides `list` and `retrieve` actions.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    #permission_classes = [IsOwner]
+    permission_classes = [Open]
+
+    def get_user_hypothesis_data(self, request, *args, **kwargs):
+        user = self.get_object()
+        print(dir(user))
+        _ = {}
+
+        if _["hypothesis_name"]:
+            hypothesis = RecordHypothesis.objects.filter(user_id=user.id, name=_["hypothesis_name"]).order_by('-id').first()
+        else:
+            hypothesis = RecordHypothesis.objects.filter(user_id=user.id).order_by('-id').first()
+        portfolio_performance = get_portfolio_performance(hypothesis)
+
+        print(f" DATA TOUT COURT {portfolio_performance}")
+        cumsum_portfolio = portfolio_performance.fillna(0).cumsum()
+        print(f"CUMSUM {cumsum_portfolio}")
+        pct_chg_portfolio = portfolio_performance.pct_change().fillna(0) * 100
+        print(f"PCT CHANGE {pct_chg_portfolio}")
+        bigChartData = {
+            "simple": portfolio_performance.fillna(0).tolist(),
+            "cumsum": cumsum_portfolio.tolist(),
+            "pct": pct_chg_portfolio.tolist(),
+        }
+        bigChartLabels = [
+            "JANVIER", "FEVRIER", "MARS", "AVRIL", "MAI", 
+            "JUIN", "JUILLET", "AOÛT", "SEPTEMBRE", "OCTOBRE", "NOVEMBRE", "DECEMBRE"]
+        output = json.dumps({
+            "bigChartData": bigChartData, 
+            "bigChartLabels": bigChartLabels,
+        })
+
+        if portfolio_performance:
+            #response = serializers.serialize('python', [a], ensure_ascii=False)
+            response = JSONRenderer().render(RecordHypothesisSerializer(portfolio_performance).data)
+            response.update(output)
+            response = RecordHypothesisSerializer(portfolio_performance, many=True).data
+            response.update(output)
+            #response = a
+        else:
+            return HttpResponse(status=404)
+
+        #a = [i.created_at for i in a]
+        return Response(response)
 
 class HierarchicalViewSet(viewsets.ModelViewSet):
     """
@@ -222,7 +222,8 @@ class HierarchicalViewSet(viewsets.ModelViewSet):
     """
     queryset = HierarchicalRiskParity.objects.all()
     serializer_class = HierarchicalRiskParitySerializer
-    permission_classes = [IsOwner]
+    #permission_classes = [IsOwner]
+    permission_classes = [Open]
    # permission_classes = [permissions.IsAuthenticatedOrReadOnly,
    #                       IsOwnerOrReadOnly]
 
@@ -234,11 +235,16 @@ class HierarchicalViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
-    def list(self, request):
-        print("TES COUILLE FRERE")
-        print(request.body)
-        print(request.headers)
-        return Response({"meh": 123})
+    def list(self, request, user_pk=None):
+        queryset = HierarchicalRiskParity.objects.filter(user_id=user_pk)
+        serializer = HierarchicalRiskParitySerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None, user_pk=None):
+        queryset = HierarchicalRiskParity.objects.filter()
+        hropt = get_object_or_404(queryset, pk=user_pk)
+        serializer = HierarchicalRiskParitySerializer(hropt)
+        return Response(serializer.data)
 
     def create(self, request):
         print(json.loads(request.body))
@@ -266,7 +272,7 @@ class HierarchicalViewSet(viewsets.ModelViewSet):
         }
         print(f"LE MEGA PAYLOAD: {_}")
 
-        result = hrpopt_analyse(_)
+        result = hrpopt_analyze(_)
 
         hropt = HierarchicalRiskParity(
             name=_["name"],
@@ -281,12 +287,8 @@ class HierarchicalViewSet(viewsets.ModelViewSet):
             tickers_selected=_["coins_selected"],
         )
         hropt.save()
-        #allocation, weights = historical_value(_)
-        #allocation = json.dumps(allocation, cls=NpEncoder)
-        #weights = json.dumps(weights, cls=NpEncoder)
 
-        # Save in database user try
-
+        # Save user try in database
         hypothesis = RecordHypothesis(
             name=_["name"],
             user_id=_["user_id"],
@@ -313,14 +315,6 @@ class HistoricalValueViewSet(viewsets.ModelViewSet):
     permission_classes = [IsOwner]
    # permission_classes = [permissions.IsAuthenticatedOrReadOnly,
    #                       IsOwnerOrReadOnly]
-
-    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
-    def highlight(self, request, *args, **kwargs):
-        snippet = self.get_object()
-        return Response(snippet.highlighted)
-
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
 
     def list(self, request):
         print("TES COUILLE FRERE")
@@ -369,12 +363,8 @@ class HistoricalValueViewSet(viewsets.ModelViewSet):
             tickers_selected=_["coins_selected"],
         )
         hv.save()
-        #allocation, weights = historical_value(_)
-        #allocation = json.dumps(allocation, cls=NpEncoder)
-        #weights = json.dumps(weights, cls=NpEncoder)
 
-        # Save in database user try
-
+        # Save user try in database
         hypothesis = RecordHypothesis(
             name=_["name"],
             user_id=_["user_id"],
