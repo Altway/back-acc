@@ -20,19 +20,6 @@ from strategy import views
 from social_login.views import GoogleLogin
 from django.contrib import admin
 
-"""
-
-# Serializers define the API representation.
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ['url', 'username', 'email', 'is_staff']
-
-# ViewSets define the view behavior.
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-"""
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
 #router.register(r'users', views.UserViewSet)

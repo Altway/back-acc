@@ -4,8 +4,6 @@ import requests
 from django.contrib.auth.models import User 
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-#from django.views.decorators.csrf import csrf_exempt
-#from django.views.decorators.http import require_http_methods, require_GET, require_POST
 
 from rest_framework import viewsets, renderers
 from rest_framework.decorators import action
@@ -90,8 +88,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    #permission_classes = [IsOwner]
-    permission_classes = [Open]
+    permission_classes = [Open] # [IsOwner]
 
 class HierarchicalViewSet(viewsets.ModelViewSet):
     """
@@ -104,13 +101,6 @@ class HierarchicalViewSet(viewsets.ModelViewSet):
     serializer_class = HierarchicalRiskParitySerializer
     permission_classes = [Open]  #[IsOwner] [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
-    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
-    def highlight(self, request, *args, **kwargs):
-        snippet = self.get_object()
-        return Response(snippet.highlighted)
-
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
 
     def list(self, request, user_pk=None):
         queryset = HierarchicalRiskParity.objects.filter(user_id=user_pk).order_by('-id').all()
@@ -123,7 +113,7 @@ class HierarchicalViewSet(viewsets.ModelViewSet):
         serializer = HierarchicalRiskParitySerializer(obj)
         return Response(serializer.data)
 
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         data = json.loads(request.body)
         _ = {
             'name': data["name"],
@@ -199,12 +189,12 @@ class HistoricalValueViewSet(viewsets.ModelViewSet):
         serializer = HistoricalValueSerializer(obj)
         return Response(serializer.data)
 
-    def create(self, request):
+    def create(self, request, user_pk=None):
         data = json.loads(request.body)
         _ = {
             'name': data["name"],
             'risk_choice': data["risk_choice"], 
-            'user_id': data["user_id"],
+            'user_id': user_pk,
             'broker_fees': float(data["broker_fees"]),
             'capital': int(data["capital"]),
             'expected_return': data["expected_return"], 
@@ -255,8 +245,6 @@ class HistoricalValueViewSet(viewsets.ModelViewSet):
 
         return HttpResponse(json.dumps(result["allocation"], cls=NpEncoder))
 
-
-
 class RecordHypothesisViewSet(viewsets.ModelViewSet):
     """
     This viewset automatically provides `list`, `create`, `retrieve`,
@@ -278,6 +266,7 @@ class RecordHypothesisViewSet(viewsets.ModelViewSet):
         obj = get_object_or_404(queryset, pk=pk)
         serializer = RecordHypothesisSerializer(obj)
         return Response(serializer.data)
+
 
     @action(detail=True, methods=["get"])
     def hypothesis_data(self, request, pk=None, user_pk=None, *args, **kwargs):
