@@ -1,5 +1,5 @@
 from rest_framework import permissions
-from . import models
+from strategy import models
 
 class Open(permissions.BasePermission):
     pass

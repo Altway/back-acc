@@ -1,17 +1,23 @@
 from django.urls import path, include
-
-from . import views
-from .views import HierarchicalViewSet, RecordHypothesisViewSet, UserViewSet, preferred_hypothesis
 from rest_framework.urlpatterns import format_suffix_patterns
-from rest_framework import renderers
-
 from rest_framework_nested import routers
 
-#hropt = HierarchicalViewSet.as_view({
-#    'get': 'list',
-#    'post': 'create'
-#})
-"""
+from. import views
+
+from .views import (
+    HierarchicalViewSet, RecordHypothesisViewSet, UserViewSet, HistoricalValueViewSet, 
+    risk, returns, coins_list, goals
+)
+
+hypothesis_data = RecordHypothesisViewSet.as_view({
+    'get': 'hypothesis_data',
+})
+""" FOR THE RECORD
+from rest_framework import renderers
+hropt = HierarchicalViewSet.as_view({
+    'get': 'list',
+    'post': 'create'
+})
 hropt_detail = HierarchicalViewSet.as_view({
     'get': 'retrieve',
     'put': 'update',
@@ -22,38 +28,31 @@ hropt_highlight = HierarchicalViewSet.as_view({
     'get': 'highlight'
 }, renderer_classes=[renderers.StaticHTMLRenderer])
 """
+router = routers.DefaultRouter()
 
-#user_list = UserViewSet.as_view({
-#    'get': 'list'
-#})
-user_hypothesis = UserViewSet.as_view({
-    'get': 'get_user_hypothesis_data'
-})
-preferred_hypothesis_list = RecordHypothesisViewSet.as_view({
-    'get': 'list'
-})
+router.register(r'users', UserViewSet)
 
-router = routers.SimpleRouter()
-
-router.register(r'users', views.UserViewSet)
 hropt_router = routers.NestedSimpleRouter(router, r'users', lookup='user')
-hropt_router.register(r'hropt', views.HierarchicalViewSet)
+hropt_router.register(r'hropt', HierarchicalViewSet)
 
+historical_router = routers.NestedSimpleRouter(router, r'users', lookup='user')
+historical_router.register(r'historical', HistoricalValueViewSet)
 
-#router.register(r'historical', views.HistoricalValueViewSet)
-#router.register(r'hypothesis', views.RecordHypothesisViewSet)
+hypothesis_router = routers.NestedSimpleRouter(router, r'users', lookup='user')
+hypothesis_router.register(r'hypothesis', RecordHypothesisViewSet)
+
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
     path('', include(router.urls)),
     path('', include(hropt_router.urls)),
-    path('risk', views.risk, name='risk'),
-    path('returns', views.returns, name='returns'),
-    path('coins_list', views.coins_list, name='coins_list'),
-    path('goals', views.goals, name='goals'),
-    #path('preferred_hypothesis', views.preferred_hypothesis, name='preferred_hypothesis'),
-    #path('hypothesis_data', views.hypothesis_data, name='hypothesis_data'),
-    path('users/<int:pk>/hypothesis/<str:hypothesis_name>', user_hypothesis, name='user-hypothesis'),
+    path('', include(historical_router.urls)),
+    path('', include(hypothesis_router.urls)),
+    path('hypothesis_data', hypothesis_data, name='hypothesis-data'),
+    path('risk', risk, name='risk'),
+    path('returns', returns, name='returns'),
+    path('coins_list', coins_list, name='coins_list'),
+    path('goals', goals, name='goals'),
 ]
 """
 urlpatterns = format_suffix_patterns([

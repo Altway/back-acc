@@ -1,5 +1,9 @@
 from django.db import models
 
+from  django.contrib.auth.models import User
+from strategy.models import RecordHypothesis
+
+
 class Exchange(models.Model):
     name = models.CharField(max_length=200)
     currency = models.CharField(max_length=200)
@@ -41,3 +45,7 @@ class DailyPrice(models.Model):
     price_date = models.DateTimeField(null=True)
     created_at = models.DateTimeField(null=True)
     updated_at = models.DateTimeField(null=True)
+
+class UserMeta(models.Model):
+    user = models.ForeignKey('auth.User', related_name='usermeta', null=False, on_delete=models.CASCADE)
+    preferred_hypothesis = models.ForeignKey('strategy.RecordHypothesis', related_name='userpreferredhypothesis', null=False, on_delete=models.CASCADE)
