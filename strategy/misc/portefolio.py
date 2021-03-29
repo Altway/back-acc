@@ -71,10 +71,11 @@ def get_portfolio_performance(record_hypothesis):
     return res
 
 def historical_value_analyze(data):
+    data['tickers_selected'] = data['tickers_selected'][2:-2].split("\",\"")
 
     # Retrieve tickers data
     stocks_data = get_stocks_data(
-            stocks_list=data["coins_selected"], 
+            stocks_list=data["tickers_selected"], 
             period=data["period"],
         )
     stocks_price_matrix_df = stocks_data["Adj Close"]
@@ -180,9 +181,10 @@ def historical_value_analyze(data):
 
 def hrpopt_analyze(data):
 
+    data['tickers_selected'] = data['tickers_selected'][2:-2].split("\",\"")
     # Retrieve tickers data
     stocks_data = get_stocks_data(
-        stocks_list=data["coins_selected"], 
+        stocks_list=data["tickers_selected"], 
         period=data["period"],
     )
     stocks_price_matrix_df = stocks_data["Adj Close"]

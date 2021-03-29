@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 
-from rest_framework import viewsets, renderers
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -113,59 +113,33 @@ class HierarchicalViewSet(viewsets.ModelViewSet):
         serializer = HierarchicalRiskParitySerializer(obj)
         return Response(serializer.data)
 
-    def create(self, request, *args, **kwargs):
-        data = json.loads(request.body)
-        _ = {
-            'name': data["name"],
-            'risk_choice': data["risk_choice"], 
-            'user_id': data["user_id"],
-            'broker_fees': float(data["broker_fees"]),
-            'capital': int(data["capital"]),
-            'expected_return': data["expected_return"], 
-            'expected_returns_id': data["expected_returns_id"], 
-            'gamma':data["gamma"],
-            'risk_free_rate': float(data["risk_free_rate"]),
-            'short_selling': data["short_selling"],
-            'coins_selected': data["coins_selected"], 
-
-            'risk_model_id': data["risk_model_id"], 
-            'returns_choice': data["returns_choice"], 
-            'method_choice': data["method_choice"], 
-            'risk_percentage': data["risk_percentage"], 
+    def create(self, request, user_pk=None, *args, **kwargs):
+        request.data.update({"user": user_pk, "user_id": int(user_pk)})
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        request.data.update({
             'short_ratio': 0.3,
             'objectif': None,
             'period': '1y',
-        }
-        result = hrpopt_analyze(_)
-
-        hropt = HierarchicalRiskParity(
-            name=_["name"],
-            risk_model_id=_["risk_model_id"],
-            user_id=_["user_id"],
-            broker_fees=_["broker_fees"],
-            capital=_["capital"],
-            expected_return_id=int(_["expected_returns_id"]), 
-            gamma=_["gamma"],
-            risk_free_rate=_["risk_free_rate"],
-            short_selling=_["short_selling"],
-            tickers_selected=_["coins_selected"],
-        )
-        hropt.save()
-
-        # Save user try in database
+        })
+        result = hrpopt_analyze(request.data)
         hypothesis = RecordHypothesis(
-            name=_["name"],
-            user_id=_["user_id"],
-            capital=_["capital"],
-            risk_free_rate=_["risk_free_rate"],
-            method=_["method_choice"],
-            strategy=_["risk_choice"],
-            tickers_selected=_["coins_selected"],
+            name=request.data["name"],
+            user_id=request.data["user_id"],
+            capital=request.data["capital"],
+            risk_free_rate=request.data["risk_free_rate"],
+            method=request.data["method_choice"],
+            strategy=request.data["risk_choice"],
+            tickers_selected=request.data["tickers_selected"],
             allocation=json.dumps(result["allocation"], cls=NpEncoder),
         )
         hypothesis.save()
+        resp = serializer.data
+        resp.update({"hypothesis_id": hypothesis.id})
 
-        return HttpResponse(json.dumps(result["allocation"], cls=NpEncoder))
+        return Response(resp, status=status.HTTP_201_CREATED, headers=headers)
 
 class HistoricalValueViewSet(viewsets.ModelViewSet):
     """
@@ -189,61 +163,34 @@ class HistoricalValueViewSet(viewsets.ModelViewSet):
         serializer = HistoricalValueSerializer(obj)
         return Response(serializer.data)
 
-    def create(self, request, user_pk=None):
-        data = json.loads(request.body)
-        _ = {
-            'name': data["name"],
-            'risk_choice': data["risk_choice"], 
-            'user_id': user_pk,
-            'broker_fees': float(data["broker_fees"]),
-            'capital': int(data["capital"]),
-            'expected_return': data["expected_return"], 
-            'expected_returns_id': data["expected_returns_id"], 
-            'gamma':data["gamma"],
-            'risk_free_rate': float(data["risk_free_rate"]),
-            'short_selling': data["short_selling"],
-            'coins_selected': data["coins_selected"], 
-
-            'risk_model_id': data["risk_model_id"], 
-            'returns_choice': data["returns_choice"], 
-            'method_choice': data["method_choice"], 
-            'risk_percentage': data["risk_percentage"], 
+    def create(self, request, user_pk=None, *args, **kwargs):
+        request.data.update({"user": user_pk, "user_id": int(user_pk)})
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        # Create the associated hypothesis
+        request.data.update({
             'short_ratio': 0.3,
             'objectif': None,
             'period': '1y',
-        }
-        print(f"LE MEGA PAYLOAD: {_}")
-
-        result = historical_value_analyze(_)
-
-        hv = HistoricalValue(
-            name=_["name"],
-            risk_model_id=_["risk_model_id"],
-            user_id=_["user_id"],
-            broker_fees=_["broker_fees"],
-            capital=_["capital"],
-            expected_return_id=int(_["expected_returns_id"]), 
-            gamma=_["gamma"],
-            risk_free_rate=_["risk_free_rate"],
-            short_selling=_["short_selling"],
-            tickers_selected=_["coins_selected"],
-        )
-        hv.save()
-
-        # Save user try in database
+        })
+        result = historical_value_analyze(request.data)
         hypothesis = RecordHypothesis(
-            name=_["name"],
-            user_id=_["user_id"],
-            capital=_["capital"],
-            risk_free_rate=_["risk_free_rate"],
-            method=_["method_choice"],
-            strategy=_["risk_choice"],
-            tickers_selected=_["coins_selected"],
+            name=request.data["name"],
+            user_id=request.data["user_id"],
+            capital=request.data["capital"],
+            risk_free_rate=request.data["risk_free_rate"],
+            method=request.data["method_choice"],
+            strategy=request.data["risk_choice"],
+            tickers_selected=request.data["tickers_selected"],
             allocation=json.dumps(result["allocation"], cls=NpEncoder),
         )
         hypothesis.save()
+        resp = serializer.data
+        resp.update({"hypothesis_id": hypothesis.id})
 
-        return HttpResponse(json.dumps(result["allocation"], cls=NpEncoder))
+        return Response(resp, status=status.HTTP_201_CREATED, headers=headers)
 
 class RecordHypothesisViewSet(viewsets.ModelViewSet):
     """

@@ -5,28 +5,40 @@ from personnal.models import UserMeta
 from rest_framework import serializers
 
 
+class RecordHypothesisSerializer(serializers.ModelSerializer):
+    #user = serializers.ReadOnlyField(source='user.username')
+    class Meta:
+        model = RecordHypothesis
+        exclude = []
+        #fields = ['created_at', 'name', 'allocation', 'user', 'id']
+
+class HierarchicalRiskParitySerializer(serializers.ModelSerializer):
+    #user = serializers.ReadOnlyField(source='user.username')
+    class Meta:
+        model = HierarchicalRiskParity
+        exclude = []
+        #fields = ['name', 'created_at', 'user']
+
 class HistoricalValueSerializer(serializers.ModelSerializer):
+    #user = serializers.ReadOnlyField(source='user.id')
+    #expected_return_id = serializers.ReadOnlyField(source='expected_return.name')
+    #capital = serializers.FloatField()
     #user = serializers.ReadOnlyField(source='user.username')
     #user = serializers.PrimaryKeyRelatedField(many=False, queryset=User.objects.all())
     class Meta:
         model = HistoricalValue
-        fields = ['name', 'created_at', 'user', 'capital']
-
-        def create(self, validated_data):
-            print(validated_data)
-            return HistoricalValue()
+        exclude = []
+        #fields = ['name', 'created_at', 'user', 'capital', 'risk_free_rate', 'broker_fees', 'gamma', '']
 
 class UserSerializer(serializers.ModelSerializer):
     #hropt = serializers.PrimaryKeyRelatedField(many=True, queryset=HierarchicalRiskParity.objects.all())
-    #historicalvalue = HistoricalValueSerializer(many=True, read_only=False)
+    historicalvalue = HistoricalValueSerializer(many=True, read_only=False)
+    hropt = HierarchicalRiskParitySerializer(many=True, read_only=False)
     class Meta:
         model = User
-        fields = ['url', 'username', 'email', 'groups']#, 'historicalvalue']
+        exclude = []
+        #fields = ['url', 'username', 'email', 'groups', 'historicalvalue', 'hropt']
     
-    #def create(self, request):
-    #    print("ICICICI")
-    #    pass
-
 class UserMetaSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserMeta
@@ -37,18 +49,8 @@ class GroupSerializer(serializers.ModelSerializer):
         model = Group
         fields = ['url', 'name']
 
-class HierarchicalRiskParitySerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source='user.username')
-    class Meta:
-        model = HierarchicalRiskParity
-        fields = ['name', 'created_at', 'user']
 
 
-class RecordHypothesisSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source='user.username')
-    class Meta:
-        model = RecordHypothesis
-        fields = ['created_at', 'name', 'allocation', 'user', 'id']
 
 class PortfolioPerformanceSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')

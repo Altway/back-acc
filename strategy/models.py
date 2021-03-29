@@ -50,10 +50,10 @@ class RiskModel(models.Model):
     updated_at = models.DateTimeField(default=now, editable=True)
 
 class HistoricalValue(models.Model):
-    user = models.ForeignKey('auth.User', related_name='historicalvalue', null=True, on_delete=models.CASCADE)
+    user = models.ForeignKey('auth.User', related_name='historicalvalue', on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
-    expected_return = models.ForeignKey(ExpectedReturn, on_delete=models.CASCADE)
-    risk_model = models.ForeignKey(RiskModel, on_delete=models.CASCADE)
+    #expected_return = models.ForeignKey(ExpectedReturn, on_delete=models.CASCADE)
+    #risk_model = models.ForeignKey(RiskModel, on_delete=models.CASCADE)
 
     capital = models.FloatField(null=True, blank=True, default=None)
     risk_free_rate = models.FloatField(null=True, blank=True, default=None)
@@ -74,8 +74,8 @@ class HistoricalValue(models.Model):
 class HierarchicalRiskParity(models.Model):
     user = models.ForeignKey('auth.User', related_name='hropt', null=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
-    expected_return = models.ForeignKey(ExpectedReturn, on_delete=models.CASCADE)
-    risk_model = models.ForeignKey(RiskModel, on_delete=models.CASCADE)
+    #expected_return = models.ForeignKey(ExpectedReturn, on_delete=models.CASCADE)
+    #risk_model = models.ForeignKey(RiskModel, on_delete=models.CASCADE)
 
     capital = models.FloatField(null=True, blank=True, default=None)
     risk_free_rate = models.FloatField(null=True, blank=True, default=None)
