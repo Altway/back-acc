@@ -47,5 +47,6 @@ class DailyPrice(models.Model):
     updated_at = models.DateTimeField(null=True)
 
 class UserMeta(models.Model):
-    user = models.ForeignKey('auth.User', related_name='usermeta', null=False, on_delete=models.CASCADE)
+    #user = models.ForeignKey('auth.User', related_name='usermeta', null=False, on_delete=models.CASCADE)
+    user = models.OneToOneField('auth.User', related_name='usermeta', null=False, on_delete=models.CASCADE, primary_key=True)
     preferred_hypothesis = models.ForeignKey('strategy.RecordHypothesis', related_name='userpreferredhypothesis', null=False, on_delete=models.CASCADE)

@@ -50,7 +50,6 @@ def coins_list(request):
         {"id": 3,"symbol": "V"}, 
         {"id": 4,"symbol": "CSCO"}, 
         {"id": 5,"symbol": "HNI"}, 
-        {"id": 6,"symbol": "ORI"}, 
         {"id": 7,"symbol": "SPR"}, 
         {"id": 8,"symbol": "XOM"}, 
         {"id": 9,"symbol": "CB"}, 
@@ -138,6 +137,10 @@ class HierarchicalViewSet(viewsets.ModelViewSet):
         hypothesis.save()
         resp = serializer.data
         resp.update({"hypothesis_id": hypothesis.id})
+        queryset = User.objects.filter()
+        obj = get_object_or_404(queryset, pk=user_pk)
+        obj.usermeta.preferred_hypothesis_id = hypothesis.id
+        obj.save()
 
         return Response(resp, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -189,6 +192,7 @@ class HistoricalValueViewSet(viewsets.ModelViewSet):
         hypothesis.save()
         resp = serializer.data
         resp.update({"hypothesis_id": hypothesis.id})
+        
 
         return Response(resp, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -208,10 +212,17 @@ class RecordHypothesisViewSet(viewsets.ModelViewSet):
         serializer = RecordHypothesisSerializer(queryset, many=True)
         return Response(serializer.data)
 
+
     def retrieve(self, request, pk=None, user_pk=None):
         queryset = RecordHypothesis.objects.filter(id=pk, user_id=user_pk)
-        obj = get_object_or_404(queryset, pk=pk)
-        serializer = RecordHypothesisSerializer(obj)
+        print(queryset)
+        if queryset:
+            obj = get_object_or_404(queryset, pk=pk)
+            serializer = RecordHypothesisSerializer(obj)
+        else:
+            queryset = RecordHypothesis.objects.filter(user_id=user_pk).order_by('-id').first()
+            serializer = RecordHypothesisSerializer(queryset)
+
         return Response(serializer.data)
 
 

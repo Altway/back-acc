@@ -1,17 +1,12 @@
 import json
 
-from django.contrib.auth.models import User 
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
 
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework.decorators import action
 
 from .models import Coin, UserMeta
-from strategy.models import RecordHypothesis
 from acc.serializers import UserMetaSerializer
 from acc.permissions import IsOwner, IsOwnerOrReadOnly, Open
 
@@ -26,19 +21,6 @@ def index(request):
 
 def home(request):
     return render(request, "login.html")
-
-@csrf_exempt
-def user(request, id):
-    a = User.objects.get(pk=id)
-    print(dir(a))
-    output= {
-        "email": a.email,
-        "firstname": a.first_name,
-        "lastname": a.last_name,
-    }
-    print(output)
-    return HttpResponse(json.dumps(output))
-
 
 class UserMetaViewSet(viewsets.ModelViewSet):
     """

@@ -139,6 +139,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_AUTH_SERIALIZERS = {
+    'USER_DETAILS_SERIALIZER': 'acc.serializers.UserSerializer'
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
