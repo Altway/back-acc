@@ -16,5 +16,6 @@ usermeta_router.register(r'usermeta', UserMetaViewSet)
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
+    path('', include(router.urls)),
     path('', include(usermeta_router.urls)),
 ]
