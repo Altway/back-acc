@@ -160,9 +160,9 @@ class HistoricalValueViewSet(viewsets.ModelViewSet):
         serializer = HistoricalValueSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    def retrieve(self, request, pk=None, user_pk=None):
+    def retrieve(self, request, *args, **kwargs):
         queryset = HistoricalValue.objects.filter()
-        obj = get_object_or_404(queryset, pk=user_pk)
+        obj = get_object_or_404(queryset, pk=kwargs.get("pk", None))
         serializer = HistoricalValueSerializer(obj)
         return Response(serializer.data)
 

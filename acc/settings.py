@@ -213,3 +213,5 @@ REST_FRAMEWORK = {
         "dj_rest_auth.utils.JWTCookieAuthentication",
     ),
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
