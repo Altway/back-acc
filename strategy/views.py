@@ -88,6 +88,34 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [Open] # [IsOwner]
+    
+    @action(detail=True, methods=["get"])
+    def calculate_repartition(self, request, *args, **kwargs):
+        queryset = HierarchicalRiskParity.objects.filter()
+        obj = get_object_or_404(queryset, pk=kwargs.get("user_pk", None))
+        serializer = HierarchicalRiskParitySerializer(obj)
+        request.data.update({
+            'short_ratio': 0.3,
+            'objectif': None,
+            'period': '1y',
+        })
+        result = historical_value_analyze(request.data)
+        hypothesis = RecordHypothesis(
+            name=request.data["name"],
+            user_id=request.data["user_id"],
+            capital=request.data["capital"],
+            risk_free_rate=request.data["risk_free_rate"],
+            method=request.data["method_choice"],
+            strategy=request.data["risk_choice"],
+            tickers_selected=request.data["tickers_selected"],
+            allocation=json.dumps(result["allocation"], cls=NpEncoder),
+        )
+        hypothesis.save()
+        resp = serializer.data
+        resp.update({"hypothesis_id": hypothesis.id})
+        
+
+        return Response(resp, status=status.HTTP_201_CREATED, headers=headers)
 
 class HierarchicalViewSet(viewsets.ModelViewSet):
     """
@@ -155,6 +183,7 @@ class HistoricalValueViewSet(viewsets.ModelViewSet):
     serializer_class = HistoricalValueSerializer
     permission_classes = [Open]  #[IsOwner] [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
+    """
     def list(self, request, user_pk=None):
         queryset = HistoricalValue.objects.filter(user_id=user_pk).order_by('-id').all()
         serializer = HistoricalValueSerializer(queryset, many=True)
@@ -165,7 +194,7 @@ class HistoricalValueViewSet(viewsets.ModelViewSet):
         obj = get_object_or_404(queryset, pk=kwargs.get("pk", None))
         serializer = HistoricalValueSerializer(obj)
         return Response(serializer.data)
-
+    """
     def create(self, request, user_pk=None, *args, **kwargs):
         request.data.update({"user": user_pk, "user_id": int(user_pk)})
         serializer = self.get_serializer(data=request.data)
@@ -195,7 +224,6 @@ class HistoricalValueViewSet(viewsets.ModelViewSet):
         
 
         return Response(resp, status=status.HTTP_201_CREATED, headers=headers)
-
 class RecordHypothesisViewSet(viewsets.ModelViewSet):
     """
     This viewset automatically provides `list`, `create`, `retrieve`,

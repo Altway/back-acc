@@ -15,6 +15,7 @@ class RecordHypothesisSerializer(serializers.ModelSerializer):
 
 class HierarchicalRiskParitySerializer(serializers.ModelSerializer):
     #user = serializers.ReadOnlyField(source='user.username')
+    #hypothesisvalue = RecordHypothesisSerializer(many=True, read_only=False)
     class Meta:
         model = HierarchicalRiskParity
         exclude = []
@@ -26,6 +27,7 @@ class HistoricalValueSerializer(serializers.ModelSerializer):
     #capital = serializers.FloatField()
     #user = serializers.ReadOnlyField(source='user.username')
     #user = serializers.PrimaryKeyRelatedField(many=False, queryset=User.objects.all())
+    #hypothesisvalue = RecordHypothesisSerializer(many=True, read_only=False)
     class Meta:
         model = HistoricalValue
         exclude = []

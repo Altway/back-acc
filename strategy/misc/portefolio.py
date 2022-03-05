@@ -71,7 +71,8 @@ def get_portfolio_performance(record_hypothesis):
     return res
 
 def historical_value_analyze(data):
-    data['tickers_selected'] = data['tickers_selected'][2:-2].split("\",\"")
+    #data['tickers_selected'] = data['tickers_selected'][2:-2].split("\",\"")
+    data['tickers_selected'] = data['tickers_selected'].split(",")
 
     # Retrieve tickers data
     stocks_data = get_stocks_data(
@@ -82,7 +83,7 @@ def historical_value_analyze(data):
 
     # Setup mandatory static values
     gamma = data["gamma"]    
-    capital = data["capital"]
+    capital = int(data["capital"])
     broker_fees = 0.001
     risk_free_rate = data["risk_free_rate"]
 
@@ -161,6 +162,8 @@ def historical_value_analyze(data):
         risk_free_rate=risk_free_rate
     ) 
 
+    print(capital)
+    print(type(capital))
     latest_prices = get_latest_prices(stocks_price_matrix_df)
     discrete_allocation = DiscreteAllocation(
         cleaned_weights, 

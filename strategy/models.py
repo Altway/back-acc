@@ -3,7 +3,6 @@ from django.db import models
 from .utils.strategy import StrategyTypes, MethodTypes
 from  django.contrib.auth.models import User
 
-
 from django.utils.timezone import now
 
 STRATEGY_NAME = (
@@ -103,7 +102,7 @@ class RecordHypothesis(models.Model):
     #gamma = models.IntegerField(null=True)
     #short_selling = models.BooleanField(null=True)
     #allocation = JSONField(null=True)
-    allocation = models.CharField(max_length=200)
+    allocation = models.JSONField()
     #tickers_selected = ArrayField(base_field=models.CharField, null=True)
     tickers_selected = models.CharField(max_length=200)
     method = models.CharField(max_length=200)

@@ -25,6 +25,8 @@ django-allauth = "*"
 djangorestframework = "*"
 djangorestframework-simplejwt = "*"
 django-health-check = "*"
+cvxpy = "*"
+cvxopt = "*"
 
 [requires]
 python_version = "3.8"
